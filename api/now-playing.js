@@ -1,5 +1,5 @@
-// This is a debugging version of the serverless function.
-// It will return more information to help us diagnose the issue.
+// This is the final, production-ready serverless function.
+// It is clean and only returns the necessary data.
 
 export const config = {
     runtime: 'edge'
@@ -21,7 +21,7 @@ export default async function handler(request) {
                 refresh_token: process.env.SPOTIFY_REFRESH_TOKEN
             })
         });
-        
+
         // Check if getting the token failed
         if (!tokenResponse.ok) {
             const errorText = await tokenResponse.text();
@@ -40,8 +40,7 @@ export default async function handler(request) {
         // If nothing is playing, Spotify returns a 204 No Content
         if (response.status === 204) {
             return new Response(JSON.stringify({ 
-                isPlaying: false, 
-                debug_info: "Spotify returned 204 No Content." 
+                isPlaying: false 
             }), {
                 headers: {
                     'Content-Type': 'application/json',
@@ -52,12 +51,11 @@ export default async function handler(request) {
 
         const data = await response.json();
 
-        // Return everything Spotify gives us for debugging
+        // Return only the necessary data for the component
         return new Response(JSON.stringify({
             isPlaying: data.is_playing,
-            title: data.item?.name || null,
-            artist: data.item?.artists.map((_artist) => _artist.name).join(', ') || null,
-            full_spotify_response: data // This is the new debugging field
+            title: data.item?.name || '',
+            artist: data.item?.artists.map((_artist) => _artist.name).join(', ') || ''
         }), {
             headers: {
                 'Content-Type': 'application/json',
@@ -65,7 +63,7 @@ export default async function handler(request) {
             }
         });
     } catch (error) {
-        // Return a more descriptive error
+        // Return a simple error
         return new Response(JSON.stringify({ 
             error: 'Error fetching song',
             message: error.message 
